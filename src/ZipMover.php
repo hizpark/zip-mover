@@ -21,9 +21,9 @@ class ZipMover
 
     private ?string $hash = null; // 用于存储压缩后计算的 hash 值
 
-    public function __construct(string $zipFile)
+    public function __construct()
     {
-        $this->zipFile = $zipFile;
+        $this->zipFile = sys_get_temp_dir() . '/zip-mover-' . uniqid() . '.zip';
     }
 
     public function getHash(): ?string

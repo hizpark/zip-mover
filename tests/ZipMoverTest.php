@@ -10,20 +10,18 @@ use Hizpark\ZipMover\ZipMover;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use ReflectionClass;
+use RuntimeException;
 use SplFileInfo;
 
 final class ZipMoverTest extends TestCase
 {
     private string $tempDir;
 
-    private string $zipFile;
-
     protected function setUp(): void
     {
-        $this->tempDir = sys_get_temp_dir() . '/zip_mover_test_' . uniqid();
+        $this->tempDir = sys_get_temp_dir() . '/zip-mover-test-' . uniqid();
         mkdir($this->tempDir, 0o777, true);
-
-        $this->zipFile = $this->tempDir . '/test.zip';
 
         // 创建一个测试文件夹结构
         mkdir("{$this->tempDir}/src");
@@ -54,16 +52,18 @@ final class ZipMoverTest extends TestCase
 
     public function testCompressCreatesZipFile(): void
     {
-        $zipMover = new ZipMover($this->zipFile);
+        $zipMover = new ZipMover();
         $zipMover->compress("{$this->tempDir}/src");
 
-        $this->assertFileExists($this->zipFile);
-        $this->assertGreaterThan(0, filesize($this->zipFile));
+        $zipFile = $this->getPrivateZipFile($zipMover);
+
+        $this->assertFileExists($zipFile);
+        $this->assertGreaterThan(0, filesize($zipFile));
     }
 
     public function testExtractCreatesExpectedFiles(): void
     {
-        $zipMover = new ZipMover($this->zipFile);
+        $zipMover = new ZipMover();
         $zipMover->compress("{$this->tempDir}/src");
 
         mkdir("{$this->tempDir}/extracted");
@@ -76,46 +76,61 @@ final class ZipMoverTest extends TestCase
 
     public function testRemoveZipFileDeletesTheFile(): void
     {
-        $zipMover = new ZipMover($this->zipFile);
+        $zipMover = new ZipMover();
         $zipMover->compress("{$this->tempDir}/src");
 
-        $this->assertFileExists($this->zipFile);
+        $zipFile = $this->getPrivateZipFile($zipMover);
+
+        $this->assertFileExists($zipFile);
 
         $zipMover->removeZipFile();
 
-        $this->assertFileDoesNotExist($this->zipFile);
+        $this->assertFileDoesNotExist($zipFile);
     }
 
-    // 测试哈希校验
     public function testExtractThrowsExceptionWhenZipFileIsModified(): void
     {
-        $zipMover = new ZipMover($this->zipFile);
+        $zipMover = new ZipMover();
         $zipMover->compress("{$this->tempDir}/src");
 
-        // 获取原始哈希值
-        $originalHash = $zipMover->getHash();
+        $zipFile      = $this->getPrivateZipFile($zipMover);
+        $originalHash = $zipMover->getHash();  // 原始哈希值，未篡改时
 
         // 模拟文件被篡改
-        file_put_contents($this->zipFile, 'modified content');
+        file_put_contents($zipFile, 'modified content');
 
         $this->expectException(ZipMoverException::class);
         $this->expectExceptionMessage('❌ ZIP 文件已被篡改，解压中止');
 
+        // 调用 extract 方法，期待抛出异常
         $zipMover->extract("{$this->tempDir}/extracted");
 
-        // 恢复原文件内容
-        file_put_contents($this->zipFile, $originalHash);
+        // 如果有需要，还可以做哈希校验
+        $this->assertNotEquals($originalHash, $zipMover->getHash(), 'ZIP 文件内容应该已被篡改');
     }
 
-    // 测试压缩后未进行解压的哈希校验
     public function testExtractThrowsExceptionWhenHashIsNotSet(): void
     {
-        $zipMover = new ZipMover($this->zipFile);
+        $zipMover = new ZipMover();
 
-        // 压缩文件后不进行解压，验证哈希
         $this->expectException(ZipMoverException::class);
         $this->expectExceptionMessage('❌ 压缩操作未完成，无法校验哈希');
 
         $zipMover->extract("{$this->tempDir}/extracted");
+    }
+
+    private function getPrivateZipFile(ZipMover $zipMover): string
+    {
+        $reflection = new ReflectionClass($zipMover);
+        $property   = $reflection->getProperty('zipFile');
+        $property->setAccessible(true);
+
+        $zipFile = $property->getValue($zipMover);
+
+        if (!is_string($zipFile)) {
+            throw new RuntimeException('The zipFile property is not a string');
+        }
+
+        return $zipFile;
     }
 }
