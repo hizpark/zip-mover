@@ -139,20 +139,18 @@ class ZipMover
     }
 
     /**
-     * 删除指定的 ZIP 文件
+     * 清理临时文件
      *
-     * @throws ZipMoverException 如果删除失败
+     * @throws ZipMoverException
      */
-    public function removeZipFile(): void
+    public function clean(): void
     {
         // 确保文件存在
-        if (!file_exists($this->zipFile)) {
-            throw new ZipMoverException("❌ ZIP 文件不存在: $this->zipFile");
-        }
-
-        // 删除文件
-        if (!unlink($this->zipFile)) {
-            throw new ZipMoverException("❌ 删除 ZIP 文件失败: $this->zipFile");
+        if (file_exists($this->zipFile)) {
+            // 删除文件
+            if (!unlink($this->zipFile)) {
+                throw new ZipMoverException("❌ 删除 ZIP 文件失败: $this->zipFile");
+            }
         }
     }
 }

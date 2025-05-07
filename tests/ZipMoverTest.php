@@ -74,7 +74,7 @@ final class ZipMoverTest extends TestCase
         $this->assertSame('Hello World', file_get_contents("{$this->tempDir}/extracted/hello.txt"));
     }
 
-    public function testRemoveZipFileDeletesTheFile(): void
+    public function testCleanDeletesTheFile(): void
     {
         $zipMover = new ZipMover();
         $zipMover->compress("{$this->tempDir}/src");
@@ -83,7 +83,7 @@ final class ZipMoverTest extends TestCase
 
         $this->assertFileExists($zipFile);
 
-        $zipMover->removeZipFile();
+        $zipMover->clean();
 
         $this->assertFileDoesNotExist($zipFile);
     }
