@@ -31,12 +31,10 @@ composer require hizpark/zip-mover
 ## 📂 目录结构
 
 ```txt
-zip-mover/
-├── src/
-│   └── ZipMover.php
-├── tests/
-│   └── ZipMoverTest.php
-└── composer.json
+src
+├── Exception
+│   └── ZipMoverException.php
+└── ZipMover.php
 ```
 
 ## 🚀 用法示例
@@ -46,7 +44,7 @@ zip-mover/
 ```php
 use Hizpark\ZipMover\ZipMover;
 
-$mover = new ZipMover('/path/to/archive.zip');
+$mover = new ZipMover();
 $mover->compress('/path/to/source-dir');
 ```
 
@@ -55,28 +53,11 @@ $mover->compress('/path/to/source-dir');
 ```php
 use Hizpark\ZipMover\ZipMover;
 
-$mover = new ZipMover('/path/to/archive.zip');
+$mover = new ZipMover();
 $mover->extract('/path/to/destination-dir');
 ```
 
-### 示例 2：删除 ZIP 文件
-
-```php
-use Hizpark\ZipMover\ZipMover;
-
-$mover = new ZipMover('/path/to/archive.zip');
-$mover->removeZipFile();
-```
-
 ## 📐 接口说明
-
-### ZipMover::__construct(string $zipFile)
-
-> 指定 ZIP 文件的路径，供后续压缩/解压使用
-
-```php
-public function __construct(string $zipFile);
-```
 
 ### ZipMover::compress(string $srcPath): void
 
@@ -94,12 +75,12 @@ public function compress(string $srcPath): void;
 public function extract(string $destPath): void;
 ```
 
-### ZipMover::removeZipFile(): void
+### ZipMover::clean(): void
 
-> 删除当前指定的 ZIP 文件
+> 清理临时文件
 
 ```php
-public function removeZipFile(): void;
+public function clean(): void;
 ```
 
 ## 🎯 代码风格
