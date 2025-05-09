@@ -1,4 +1,4 @@
-name: PHP CI & Release
+name: CI
 
 on:
   push:
@@ -50,13 +50,13 @@ jobs:
       - name: 📥 Install Composer Dependencies
         run: composer install --no-interaction --prefer-dist --no-progress
 
+      - name: 🔍 PHPStan
+        run: composer run stan -- --error-format=github
+
       - name: ✨ PHP-CS-Fixer Check
         run: composer run cs:chk -- --stop-on-violation
         env:
           PHP_CS_FIXER_IGNORE_ENV: 1
-
-      - name: 🔍 PHPStan
-        run: composer run stan -- --error-format=github
 
       - name: ✅ PHPUnit Tests
         if: matrix.coverage == 'true'
