@@ -30,9 +30,9 @@
         }
     },
     "scripts": {
+        "stan": "phpstan analyse",
         "cs:fix": "php-cs-fixer fix --config=.php-cs-fixer.dist.php --allow-risky=yes --format=txt",
         "cs:chk": "composer run cs:fix -- --diff --verbose --dry-run",
-        "stan": "phpstan analyse",
         "test": "phpunit --testdox --stop-on-failure",
         "test:coverage": "XDEBUG_MODE=coverage phpunit --testdox --coverage-html .phpunit_coverage"
     }
